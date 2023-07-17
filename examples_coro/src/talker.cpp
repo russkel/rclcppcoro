@@ -14,7 +14,7 @@
 
 #include <chrono>
 
-#include "rclcppcoro/talker.hpp"
+#include "coro/talker.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/string.hpp"
 

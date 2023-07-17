@@ -12,26 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef WAIT_SET__LISTENER_HPP_
-#define WAIT_SET__LISTENER_HPP_
+#ifndef WAIT_SET__TALKER_HPP_
+#define WAIT_SET__TALKER_HPP_
 
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/string.hpp"
-#include "rclcppcoro/visibility.h"
+#include "coro/visibility.h"
 
-class Listener : public rclcpp::Node
+class Talker : public rclcpp::Node
 {
 public:
-  WAIT_SET_PUBLIC explicit Listener(rclcpp::NodeOptions options);
-  WAIT_SET_PUBLIC ~Listener() override;
+  WAIT_SET_PUBLIC explicit Talker(rclcpp::NodeOptions options);
 
 private:
-  void spin_wait_set();
-
-  rclcpp::Subscription<std_msgs::msg::String>::SharedPtr subscription1_;
-  rclcpp::Subscription<std_msgs::msg::String>::SharedPtr subscription2_;
-  rclcpp::WaitSet wait_set_;
-  std::thread thread_;
+  size_t count_;
+  rclcpp::Publisher<std_msgs::msg::String>::SharedPtr publisher_;
+  rclcpp::TimerBase::SharedPtr timer_;
 };
 
-#endif  // WAIT_SET__LISTENER_HPP_
+#endif  // WAIT_SET__TALKER_HPP_

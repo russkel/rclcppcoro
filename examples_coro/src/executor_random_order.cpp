@@ -17,8 +17,8 @@
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/string.hpp"
 
-#include "rclcppcoro/random_listener.hpp"
-#include "rclcppcoro/random_talker.hpp"
+#include "coro/random_listener.hpp"
+#include "coro/random_talker.hpp"
 
 /* For this example, we will be creating a talker node with three publishers which will
  * publish the topics A, B, C in random order each time. In this case the messages are handled

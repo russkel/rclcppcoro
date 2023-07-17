@@ -51,19 +51,14 @@ cppcoro::generator<std_msgs::msg::String> chatter_generator(rclcpp::Node* node)
   while (true) {
     auto wait_result = wait_set.wait(std::chrono::seconds(1));
     if (wait_result.kind() == rclcpp::WaitResultKind::Ready) {
-      size_t subscriptions_num = wait_set.get_rcl_wait_set().size_of_subscriptions;
-
-      for (size_t i = 0; i < subscriptions_num; i++) {
-        // auto& sub = wait_result.get_wait_set().get_rcl_wait_set().subscriptions[i];
-        if (sub) {
-          RCLCPP_INFO(node->get_logger(), "subscription %zu triggered", i + 1);
-          std_msgs::msg::String msg;
-          rclcpp::MessageInfo msg_info;
-          if (sub->take(msg, msg_info)) {
-            co_yield msg;
-          } else {
-            RCLCPP_INFO(node->get_logger(), "subscription %zu: No message", i + 1);
-          }
+      if (sub) {
+        // RCLCPP_INFO(node->get_logger(), "subscription %zu triggered", i + 1);
+        std_msgs::msg::String msg;
+        rclcpp::MessageInfo msg_info;
+        if (sub->take(msg, msg_info)) {
+          co_yield msg;
+        } else {
+          RCLCPP_INFO(node->get_logger(), "subscription: No message");
         }
       }
     } else if (wait_result.kind() == rclcpp::WaitResultKind::Timeout) {
@@ -74,22 +69,25 @@ cppcoro::generator<std_msgs::msg::String> chatter_generator(rclcpp::Node* node)
   }
 }
 
-cppcoro::task<> usage_example(rclcpp::Node& node)
+cppcoro::task<> example_task(rclcpp::Node& node)
 {
-  // auto do_nothing = [](std_msgs::msg::String::UniquePtr) {assert(false);};
-  // auto sub1 = node.create_subscription<std_msgs::msg::String>("topic", 10, do_nothing);
-  // rclcpp::WaitSet wait_set({}, {});
-  // wait_set.add_subscription(sub1);  // FIXME: add it in the ctor
-  // wait_set.add_subscription(sub2);
-  // wait_set.add_guard_condition(guard_condition2);
+  auto do_nothing = [](std_msgs::msg::String::UniquePtr) {assert(false);};
+  auto sub1 = node.create_subscription<std_msgs::msg::String>("topic", 10, do_nothing);
+  rclcpp::WaitSet wait_set({}, {});
+  wait_set.add_subscription(sub1);
   // Calling function creates a new task but doesn't start
   // executing the coroutine yet.
   while (1) {
-    // cppcoro::task<std_msgs::msg::String> chatter_task = get_chatter(&node, wait_set, sub1);
-
+    cppcoro::task<std_msgs::msg::String> chatter_task = get_chatter(&node, wait_set, sub1);
     // Coroutine is only started when we later co_await the task.
-    // auto msg = co_await chatter_task;
-    // RCLCPP_INFO(node.get_logger(), "subscription: I heard '%s'", msg.data.c_str());
+    auto msg = co_await chatter_task;
+    RCLCPP_INFO(node.get_logger(), "subscription: I heard '%s'", msg.data.c_str());
+  }
+}
+
+cppcoro::task<> example_generator(rclcpp::Node& node)
+{
+  while (1) {
     for (auto msg : chatter_generator(&node)) {
       RCLCPP_INFO(node.get_logger(), "subscription: I heard '%s'", msg.data.c_str());
     }
@@ -103,12 +101,13 @@ int main(int argc, char * argv[])
   auto node = std::make_shared<rclcpp::Node>("rclcppcoro_example_node");
 
   rclcpp::on_shutdown([]() {
-
+    // TODO this needs to stop the sync wait below
   });
 
   RCLCPP_INFO(node->get_logger(), "Action: Nothing triggered");
 
-  sync_wait(usage_example(*node));
+  // sync_wait(example_task(*node));
+  sync_wait(example_generator(*node));
 
   return 0;
 }

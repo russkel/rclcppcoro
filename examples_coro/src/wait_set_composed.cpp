@@ -13,8 +13,8 @@
 // limitations under the License.
 
 #include <memory>
-#include "rclcppcoro/talker.hpp"
-#include "rclcppcoro/listener.hpp"
+#include "coro/talker.hpp"
+#include "coro/listener.hpp"
 #include "rclcpp/rclcpp.hpp"
 
 int main(int argc, char * argv[])
