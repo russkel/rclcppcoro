@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.5)
 project(examples_rclcppcoro)
 
-# Default to C++23 - requires GCC13
+# Default to C++23 - requires GCC12
 if(NOT CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD 23)
   set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -17,12 +17,14 @@ find_package(rclcpp REQUIRED)
 find_package(rclcpp_components REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(cppcoro REQUIRED)
+find_package(asyncio REQUIRED)
+find_package(fmt REQUIRED)
 
 include_directories(include)
 
 add_library(talker SHARED src/talker.cpp)
 target_compile_definitions(talker PRIVATE WAIT_SET_DLL)
-target_link_libraries(talker cppcoro::cppcoro)
+target_link_libraries(talker cppcoro::cppcoro asyncio::asyncio)
 ament_target_dependencies(talker rclcpp rclcpp_components std_msgs)
 rclcpp_components_register_node(
     talker
@@ -31,7 +33,7 @@ rclcpp_components_register_node(
 
 add_library(listener SHARED src/listener.cpp)
 target_compile_definitions(listener PRIVATE WAIT_SET_DLL)
-target_link_libraries(listener cppcoro::cppcoro)
+target_link_libraries(listener cppcoro::cppcoro asyncio::asyncio)
 ament_target_dependencies(listener rclcpp rclcpp_components std_msgs)
 rclcpp_components_register_node(
     listener
@@ -39,7 +41,7 @@ rclcpp_components_register_node(
     EXECUTABLE wait_set_listener)
 
 add_executable(rclcppcoro src/rclcppcoro.cpp)
-target_link_libraries(rclcppcoro cppcoro::cppcoro)
+target_link_libraries(rclcppcoro cppcoro::cppcoro asyncio::asyncio)
 ament_target_dependencies(rclcppcoro example_interfaces rclcpp std_msgs)
 
 # add_executable(static_wait_set src/static_wait_set.cpp)
